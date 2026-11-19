@@ -1,0 +1,1514 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Buddy Store · Tindahan POS</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Buddy Store POS">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#2D9C7B">
+<style>
+/* Design tokens & theme support for Buddy Store (₱) */
+:root{
+  --bg:#F5F0E8; --bg1:#FBEEE6; --bg2:#F6F1E8; --bg3:#E2F1E9;
+  --card:rgba(255,255,255,.88); --fg:#1E2B26; --muted:#63756D; --line:rgba(30,43,38,.12);
+  --accent:#2D9C7B; --accent-fg:#FFFFFF; --accent-soft:#D8EEE4;
+  --danger:#B83A2A; --danger-soft:#F7DAD5; --sk:rgba(30,43,38,.09);
+  --h1:#BFE4D3; --h2:#E8F2DE; --h3:#F6E6CE;
+  --shadow:0 8px 24px rgba(60,90,75,.12);
+  --display:'Segoe UI',system-ui,-apple-system,BlinkMacSystemFont,Roboto,sans-serif;
+  --body:'Segoe UI',system-ui,-apple-system,BlinkMacSystemFont,Roboto,sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#0F1A16; --bg1:#16201B; --bg2:#101B17; --bg3:#0C2A22;
+    --card:rgba(32,48,42,.90); --fg:#E8F3EE; --muted:#93ABA0; --line:rgba(255,255,255,.12);
+    --accent:#4DC7A1; --accent-fg:#06241B; --accent-soft:#1B3A30;
+    --danger:#F29B8E; --danger-soft:#47231F; --sk:rgba(255,255,255,.09);
+    --h1:#1F4D3E; --h2:#1C3A31; --h3:#2C3B2B; --shadow:0 8px 24px rgba(0,0,0,.35);
+    color-scheme:dark;
+  }
+}
+
+*{box-sizing:border-box}
+html,body{min-height:100%}
+body{
+  margin:0;
+  background-color:var(--bg);
+  background-image:linear-gradient(165deg,var(--bg1),var(--bg2) 45%,var(--bg3));
+  background-attachment:fixed;
+  color:var(--fg);
+  font:15px/1.45 var(--body);
+  padding-block:10px calc(132px + env(safe-area-inset-bottom,0px));
+  padding-left:max(14px,env(safe-area-inset-left,0px));
+  padding-right:max(14px,env(safe-area-inset-right,0px));
+  -webkit-tap-highlight-color:transparent;
+}
+.wrap{max-width:600px;margin:0 auto}
+h1,h2,h3{font-family:var(--display);margin:0;text-wrap:balance}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none;padding:0}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.num{font-variant-numeric:tabular-nums}
+.ic{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.dim{color:var(--muted);font-weight:400}
+.sub{color:var(--muted);font-size:13px}
+
+/* Header, search & status bar */
+.top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:4px 0 12px}
+.loc{display:flex;align-items:center;gap:10px;text-align:left;min-width:0}
+.loc .ic{color:var(--accent)}
+.loc small{display:block;color:var(--muted);font-size:12px;line-height:1.2}
+.loc b{display:flex;align-items:center;gap:4px;font-family:var(--display);font-weight:600;font-size:16px;min-width:0}
+.loc b span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.circ{width:44px;height:44px;border-radius:22px;background:var(--card);box-shadow:var(--shadow);display:grid;place-items:center;flex-shrink:0;position:relative}
+
+.srow{display:flex;gap:10px;margin-bottom:10px}
+.search{flex:1;min-width:0;display:flex;align-items:center;gap:10px;background:var(--card);border-radius:16px;padding:0 14px;box-shadow:var(--shadow);height:48px}
+.search input{flex:1;min-width:0;border:0;background:none;outline:0;height:100%}
+.search input::placeholder{color:var(--muted)}
+.fbtn{width:48px;height:48px;border-radius:16px;background:var(--accent);color:var(--accent-fg);display:grid;place-items:center;box-shadow:var(--shadow);flex-shrink:0}
+
+.sbar{display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--accent-soft);padding:9px 12px;border-radius:14px;margin-bottom:12px;font-size:13px;flex-wrap:wrap}
+.status-pill{display:inline-flex;align-items:center;padding:3px 9px;border-radius:999px;font-size:12px;font-weight:600;background:var(--card);color:var(--accent)}
+
+/* Filter chips & featured highlight */
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.chip{padding:7px 12px;border-radius:999px;background:var(--card);box-shadow:var(--shadow);font-size:13px;font-weight:500;color:var(--fg)}
+.chip.on{background:var(--accent);color:var(--accent-fg);font-weight:600}
+
+.featured{background:linear-gradient(120deg,var(--h1),var(--h2) 60%,var(--h3));border-radius:22px;padding:14px;box-shadow:var(--shadow);margin-bottom:14px;display:flex;align-items:center;gap:12px}
+.featured-img{width:68px;height:68px;border-radius:16px;background:var(--card);display:grid;place-items:center;overflow:hidden;flex-shrink:0;color:var(--muted)}
+.featured-img img{width:100%;height:100%;object-fit:contain}
+.featured-info{flex:1;min-width:0}
+.featured-title{font-family:var(--display);font-weight:700;font-size:18px;line-height:1.2;overflow-wrap:anywhere}
+.featured-price{font-family:var(--display);font-weight:700;font-size:19px;color:var(--accent);margin-top:2px}
+
+/* Product grid & cards */
+.sh{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:8px 0 10px}
+.stitle{font-family:var(--display);font-weight:600;font-size:19px}
+.pgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:14px}
+@media (min-width:520px){.pgrid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.pc{min-width:0;background:var(--card);border-radius:18px;padding:10px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:4px}
+.pi{aspect-ratio:1;display:grid;place-items:center;border-radius:14px;overflow:hidden;color:var(--muted);background:var(--sk)}
+.pi img{width:100%;height:100%;object-fit:contain}
+.pn{font-weight:600;font-size:14px;overflow-wrap:anywhere}
+.pu{font-size:12px;color:var(--muted);display:flex;align-items:center;justify-content:space-between;gap:4px;flex-wrap:wrap}
+.pf{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-top:auto;padding-top:4px}
+.pf b{font-family:var(--display);font-size:16px}
+.plus{min-width:34px;height:34px;padding:0 8px;border-radius:17px;background:var(--accent);color:var(--accent-fg);display:inline-grid;place-items:center;flex-shrink:0;font-weight:700;font-size:13px}
+.badge{display:inline-flex;align-items:center;padding:2px 7px;border-radius:999px;font-size:11px;font-weight:600;background:var(--accent-soft);color:var(--accent)}
+.badge.warn{background:var(--danger-soft);color:var(--danger)}
+.empty{color:var(--muted);text-align:center;padding:22px 10px;background:var(--card);border-radius:18px;box-shadow:var(--shadow);margin-bottom:12px}
+
+/* Pages, stats & lists */
+.ph{margin:6px 0 14px}
+.ph h1{font-size:24px}
+.card2{background:var(--card);border-radius:18px;padding:14px;box-shadow:var(--shadow);margin-bottom:12px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px;min-width:0}
+.list{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+.list .card2{margin:0;width:100%;text-align:left}
+.stat{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:12px}
+.stat .card2{margin:0}
+.stat .v{font-family:var(--display);font-weight:700;font-size:23px;color:var(--accent);margin-top:2px}
+h2.sec{font-size:16px;margin:14px 0 8px}
+
+.ccard{display:flex;align-items:center;gap:12px;background:var(--card);border-radius:18px;padding:12px;box-shadow:var(--shadow)}
+.ci{width:68px;height:68px;border-radius:14px;background:var(--sk);display:grid;place-items:center;overflow:hidden;flex-shrink:0;color:var(--muted)}
+.ci img{width:100%;height:100%;object-fit:contain}
+.cb{flex:1;min-width:0}
+.cn{font-family:var(--display);font-weight:600;font-size:17px;overflow-wrap:anywhere}
+
+.prow{display:flex;align-items:center;gap:10px;background:var(--card);border-radius:16px;padding:10px 12px;box-shadow:var(--shadow)}
+.pt{width:50px;height:50px;border-radius:12px;background:var(--sk);display:grid;place-items:center;overflow:hidden;flex-shrink:0;color:var(--muted)}
+.pt img{width:100%;height:100%;object-fit:contain}
+.pm{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.pm b{overflow-wrap:anywhere}
+
+/* Buttons & forms */
+.btn{padding:10px 14px;border-radius:12px;background:var(--accent-soft);color:var(--accent);font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:6px;text-align:center}
+.btn.sm{padding:7px 11px;font-size:13px;border-radius:10px}
+.btn.solid{background:var(--accent);color:var(--accent-fg)}
+.btn.danger{background:var(--danger-soft);color:var(--danger)}
+.btn[disabled]{opacity:.42;cursor:not-allowed}
+.btns{display:flex;gap:8px;flex-wrap:wrap}
+.field{display:flex;flex-direction:column;gap:4px;min-width:0}
+.field label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.field input,.field select{padding:11px 12px;border:1px solid var(--line);border-radius:12px;background:var(--bg);width:100%;min-width:0}
+.form{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.form .full{grid-column:1/-1}
+.photo{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.pthumb{width:70px;height:70px;border-radius:14px;background:var(--sk);display:grid;place-items:center;overflow:hidden;color:var(--muted);flex-shrink:0}
+.pthumb img{width:100%;height:100%;object-fit:contain}
+.err{color:var(--danger);font-size:13px;min-height:18px;margin-bottom:6px;font-weight:500}
+.pbox{padding:11px 12px;border:1px dashed var(--line);border-radius:12px;font-weight:600;font-family:var(--display);min-height:44px;display:flex;align-items:center}
+.pbox.good{color:var(--accent)}
+.pbox.bad{color:var(--danger)}
+
+.qty{display:flex;align-items:center;gap:6px}
+.qty button{width:32px;height:32px;border-radius:16px;background:var(--accent-soft);color:var(--accent);font-weight:700;font-size:18px;line-height:1}
+.qty span{min-width:20px;text-align:center;font-weight:600}
+
+/* Bottom navigation bar */
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:6;padding:0 max(10px,env(safe-area-inset-left,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(10px,env(safe-area-inset-right,0px));pointer-events:none}
+.tabin{max-width:600px;margin:0 auto;background:var(--card);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-radius:26px;box-shadow:var(--shadow);display:grid;grid-template-columns:1fr 1fr 1.12fr 1fr 1fr;align-items:center;padding:7px 4px;pointer-events:auto}
+.tab{height:54px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:11px;font-weight:500;color:var(--muted)}
+.tab[aria-current="page"]{color:var(--accent);font-weight:600}
+.fab{width:62px;height:62px;border-radius:31px;background:var(--accent);color:var(--accent-fg);margin:-26px auto 0;display:grid;place-items:center;position:relative;box-shadow:0 10px 22px rgba(45,156,123,.38)}
+.fab .ic{width:26px;height:26px}
+.fb{position:absolute;top:-4px;right:-4px;min-width:22px;height:22px;border-radius:11px;background:#E5484D;color:#fff;font-size:11px;font-weight:700;display:grid;place-items:center;padding:0 5px;border:2px solid var(--bg2)}
+
+/* Modals, checkout & receipt */
+.scrim{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:20;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--bg2);width:100%;max-width:600px;max-height:92%;overflow:auto;border-radius:22px 22px 0 0;padding-block:18px calc(20px + env(safe-area-inset-bottom,0px));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.sheet h3{font-size:20px;margin-bottom:12px}
+.line{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line)}
+.line .ln{flex:1;min-width:0;overflow-wrap:anywhere}
+.total{display:flex;justify-content:space-between;align-items:baseline;margin:14px 0 8px}
+.total b{font-family:var(--display);font-size:28px}
+.pay-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px 0 12px}
+.pay-tab{padding:10px 8px;border-radius:12px;border:1px solid var(--line);background:var(--bg);font-weight:600;font-size:13px;text-align:center}
+.pay-tab.on{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+.quick{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+.quick button{padding:9px 13px;border-radius:12px;border:1px solid var(--line);background:var(--bg);font-weight:600}
+.change{display:flex;justify-content:space-between;margin:10px 0 8px;font-weight:600}
+.change.bad{color:var(--danger)}
+.receipt{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:14px}
+.receipt .c{text-align:center}
+.receipt hr{border:0;border-top:1px dashed var(--muted);margin:10px 0}
+.receipt .r{display:flex;justify-content:space-between;gap:10px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(106px + env(safe-area-inset-bottom,0px));background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:14px;z-index:30;font-size:14px;max-width:92%;text-align:center}
+
+@media print{
+  body{background:#fff;color:#000;padding:0}
+  .tabs,.toast,.btns,.pay-tabs,.quick{display:none!important}
+  .scrim{position:static;background:none;display:block}
+  .sheet{box-shadow:none;max-height:none;padding:0}
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="layer"></div>
+<input id="cat-photo-input" type="file" accept="image/*" hidden>
+<input id="json-import-input" type="file" accept="application/json,.json" hidden>
+
+<script>
+(function(){
+'use strict';
+
+const STORAGE_KEY = 'buddy_store_pos_state_v1';
+const WIN_PREFIX = 'BUDDY_STORE_POS_V1:';
+const URL_HASH_LIMIT = 180000;
+const URL_HASH_IMG_LIMIT = 3500;
+const LOW_STOCK_MAX = 5;
+const QUICK_CASH = [20, 50, 100, 200, 500, 1000];
+
+function uid(){
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+}
+
+/**
+ * Generates an inline SVG photo for the Biscuits category and helper.
+ */
+function makeBiscuitsSvg(){
+  const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="240" height="240" viewBox="0 0 240 240">' +
+    '<rect width="240" height="240" rx="36" fill="#F8E2B4"/>' +
+    '<rect x="44" y="54" width="152" height="92" rx="22" fill="#FFFDF8" stroke="#8C5219" stroke-width="4"/>' +
+    '<circle cx="84" cy="84" r="5" fill="#8C5219"/><circle cx="120" cy="84" r="5" fill="#8C5219"/><circle cx="156" cy="84" r="5" fill="#8C5219"/>' +
+    '<circle cx="84" cy="116" r="5" fill="#8C5219"/><circle cx="120" cy="116" r="5" fill="#8C5219"/><circle cx="156" cy="116" r="5" fill="#8C5219"/>' +
+    '<text x="120" y="182" text-anchor="middle" font-family="sans-serif" font-size="24" font-weight="700" fill="#6E3F12">BISCUITS</text>' +
+    '<text x="120" y="208" text-anchor="middle" font-family="sans-serif" font-size="13" fill="#8C5219">Crackers, Wafers &amp; Cookies</text></svg>';
+  return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+}
+const BISCUITS_PHOTO = makeBiscuitsSvg();
+
+function blankState(){
+  return {
+    store: 'Buddy Store',
+    cur: '₱',
+    location: 'Naic, Cavite',
+    updatedAt: Date.now(),
+    cats: [],
+    products: [],
+    sales: [],
+    debts: []
+  };
+}
+
+function defaultStarterState(){
+  const bId = 'cat-biscuits';
+  const dId = 'cat-drinks';
+  const pId = 'cat-pantry';
+  const hId = 'cat-household';
+  return {
+    store: 'Buddy Store',
+    cur: '₱',
+    location: 'Naic, Cavite',
+    updatedAt: Date.now(),
+    cats: [
+      { id: bId, name: 'Biscuits', img: BISCUITS_PHOTO },
+      { id: dId, name: 'Drinks', img: '' },
+      { id: pId, name: 'Pantry', img: '' },
+      { id: hId, name: 'Household', img: '' }
+    ],
+    products: [
+      { id: 'prod-skyflakes', name: 'Skyflakes Crackers', price: 8, cost: 6, stock: 24, cat: bId, img: BISCUITS_PHOTO },
+      { id: 'prod-fita', name: 'Fita Biscuit Pack', price: 7, cost: 5, stock: 4, cat: bId, img: BISCUITS_PHOTO },
+      { id: 'prod-creamo', name: 'Cream-O Choco', price: 10, cost: 7.5, stock: 12, cat: bId, img: BISCUITS_PHOTO },
+      { id: 'prod-water', name: 'Mineral Water 500ml', price: 15, cost: 10, stock: 3, cat: dId, img: '' },
+      { id: 'prod-canton', name: 'Pancit Canton', price: 14, cost: 11, stock: 18, cat: pId, img: '' },
+      { id: 'prod-soap', name: 'Bath Soap 90g', price: 28, cost: 22, stock: 2, cat: hId, img: '' }
+    ],
+    sales: [],
+    debts: []
+  };
+}
+
+function hasAnyData(st){
+  if(!st || typeof st !== 'object') return false;
+  return (
+    (Array.isArray(st.products) && st.products.length > 0) ||
+    (Array.isArray(st.cats) && st.cats.length > 0) ||
+    (Array.isArray(st.sales) && st.sales.length > 0) ||
+    (Array.isArray(st.debts) && st.debts.length > 0)
+  );
+}
+
+function normalizeState(raw){
+  const base = blankState();
+  if(!raw || typeof raw !== 'object') return base;
+  const out = Object.assign({}, base, raw);
+  out.store = typeof out.store === 'string' && out.store.trim() ? out.store.trim() : 'Buddy Store';
+  out.cur = typeof out.cur === 'string' && out.cur.trim() ? out.cur.trim().slice(0, 3) : '₱';
+  const loc = typeof out.location === 'string' && out.location.trim()
+    ? out.location.trim()
+    : (typeof raw.address === 'string' && raw.address.trim() ? raw.address.trim() : 'Naic, Cavite');
+  out.location = loc;
+  out.updatedAt = Number(out.updatedAt) || Date.now();
+  out.cats = Array.isArray(raw.cats)
+    ? raw.cats.filter(c => c && typeof c === 'object' && c.name).map(c => ({
+        id: String(c.id || uid()),
+        name: String(c.name),
+        img: typeof c.img === 'string' ? c.img : ''
+      }))
+    : [];
+  out.products = Array.isArray(raw.products)
+    ? raw.products.filter(p => p && typeof p === 'object' && p.name).map(p => ({
+        id: String(p.id || uid()),
+        name: String(p.name),
+        price: Number(p.price) || 0,
+        cost: p.cost === null || p.cost === undefined || p.cost === '' ? null : Number(p.cost),
+        stock: p.stock === null || p.stock === undefined || p.stock === '' ? null : Math.max(0, Number(p.stock) || 0),
+        cat: String(p.cat || ''),
+        img: typeof p.img === 'string' ? p.img : ''
+      }))
+    : [];
+  out.sales = Array.isArray(raw.sales) ? raw.sales.filter(s => s && typeof s === 'object') : [];
+  out.debts = Array.isArray(raw.debts) ? raw.debts.filter(d => d && typeof d === 'object') : [];
+  return out;
+}
+
+function mergeById(a, b){
+  const map = new Map();
+  (Array.isArray(a) ? a : []).forEach(x => { if(x && x.id) map.set(x.id, x); });
+  (Array.isArray(b) ? b : []).forEach(x => { if(x && x.id) map.set(x.id, x); });
+  return Array.from(map.values());
+}
+
+/**
+ * Non-destructive merge so empty/stale snapshots never overwrite saved store data.
+ */
+function mergeStore(existing, incoming){
+  const a = normalizeState(existing);
+  if(!incoming || typeof incoming !== 'object') return a;
+  const b = normalizeState(incoming);
+  if(hasAnyData(a) && !hasAnyData(b)){
+    return Object.assign({}, a, { updatedAt: Math.max(Number(a.updatedAt) || 0, Date.now()) });
+  }
+  const newer = (Number(b.updatedAt) || 0) >= (Number(a.updatedAt) || 0) ? b : a;
+  const merged = Object.assign({}, newer);
+  merged.cats = mergeById(a.cats, b.cats);
+  merged.products = mergeById(a.products, b.products);
+  merged.sales = mergeById(a.sales, b.sales).sort((x, y) => (Number(x.t) || 0) - (Number(y.t) || 0));
+  merged.debts = mergeById(a.debts, b.debts).sort((x, y) => (Number(x.t) || 0) - (Number(y.t) || 0));
+  merged.store = merged.store || a.store || b.store || 'Buddy Store';
+  merged.cur = merged.cur || a.cur || b.cur || '₱';
+  merged.location = merged.location || a.location || b.location || 'Naic, Cavite';
+  merged.updatedAt = Math.max(Number(a.updatedAt) || 0, Number(b.updatedAt) || 0, Date.now());
+  return merged;
+}
+
+function readWindowName(){
+  try {
+    const wn = String(window.name || '');
+    const start = wn.indexOf(WIN_PREFIX);
+    if(start === -1) return null;
+    const rest = wn.slice(start + WIN_PREFIX.length);
+    const end = rest.indexOf('\n---END_BUDDY_POS---\n');
+    const jsonText = end >= 0 ? rest.slice(0, end) : rest;
+    return JSON.parse(jsonText);
+  } catch(e){
+    return null;
+  }
+}
+
+function writeWindowName(obj){
+  try {
+    const marker = '\n---END_BUDDY_POS---\n';
+    const payload = WIN_PREFIX + JSON.stringify(obj) + marker;
+    const wn = String(window.name || '');
+    const start = wn.indexOf(WIN_PREFIX);
+    if(start === -1){
+      window.name = wn + payload;
+    } else {
+      const end = wn.indexOf(marker, start);
+      const tail = end >= 0 ? wn.slice(end + marker.length) : '';
+      window.name = wn.slice(0, start) + payload + tail;
+    }
+  } catch(e){}
+}
+
+function encodeBase64Url(str){
+  const bytes = new TextEncoder().encode(str);
+  let bin = '';
+  for(let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+  return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+function decodeBase64Url(b64){
+  const norm = b64.replace(/-/g, '+').replace(/_/g, '/');
+  const pad = norm.length % 4 ? '='.repeat(4 - (norm.length % 4)) : '';
+  const bin = atob(norm + pad);
+  const bytes = new Uint8Array(bin.length);
+  for(let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return new TextDecoder().decode(bytes);
+}
+
+function readUrlHash(){
+  try {
+    const h = String(window.location.hash || '');
+    const m = h.match(/#pos=([^&]+)/);
+    if(!m || !m[1]) return null;
+    return JSON.parse(decodeBase64Url(m[1]));
+  } catch(e){
+    return null;
+  }
+}
+
+function buildHashUrl(obj){
+  try {
+    const compact = Object.assign({}, obj, {
+      cats: (obj.cats || []).map(c => Object.assign({}, c, {
+        img: c.img && c.img.length > URL_HASH_IMG_LIMIT ? '' : c.img
+      })),
+      products: (obj.products || []).map(p => Object.assign({}, p, {
+        img: p.img && p.img.length > URL_HASH_IMG_LIMIT ? '' : p.img
+      }))
+    });
+    const enc = encodeBase64Url(JSON.stringify(compact));
+    return window.location.href.split('#')[0] + '#pos=' + enc;
+  } catch(e){
+    return window.location.href.split('#')[0];
+  }
+}
+
+function loadInitialState(){
+  let st = blankState();
+  const sources = [];
+  try {
+    const ls = localStorage.getItem(STORAGE_KEY);
+    if(ls) sources.push(JSON.parse(ls));
+  } catch(e){}
+  const wn = readWindowName();
+  if(wn) sources.push(wn);
+  const hs = readUrlHash();
+  if(hs) sources.push(hs);
+
+  for(const src of sources){
+    if(src && typeof src === 'object'){
+      st = mergeStore(st, src);
+    }
+  }
+  if(!hasAnyData(st)){
+    st = defaultStarterState();
+  }
+  return normalizeState(st);
+}
+
+let S = loadInitialState();
+
+const $ = (sel, root = document) => root.querySelector(sel);
+const esc = v => String(v == null ? '' : v).replace(/[&<>"']/g, ch => ({
+  '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+}[ch]));
+const money = n => {
+  const num = Number(n) || 0;
+  const frac = Math.abs(num % 1) > 0.0001;
+  return (S.cur || '₱') + num.toLocaleString('en-US', {
+    minimumFractionDigits: frac ? 2 : 0,
+    maximumFractionDigits: 2
+  });
+};
+const sameDay = t => new Date(Number(t) || 0).toDateString() === new Date().toDateString();
+const hhmm = t => new Date(Number(t) || 0).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+const when = t => new Date(Number(t) || 0).toLocaleString('en-US', {
+  month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit'
+});
+const saveBadgeText = () => 'Saved · ' + hhmm(S.updatedAt || Date.now());
+
+let toastTimer;
+function toast(msg){
+  try {
+    let el = $('#toast');
+    if(!el){
+      el = document.createElement('div');
+      el.id = 'toast';
+      el.className = 'toast';
+      document.body.appendChild(el);
+    }
+    el.textContent = String(msg || '');
+    el.hidden = false;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { el.hidden = true; }, 3200);
+  } catch(e){}
+}
+
+function persist(opts){
+  const skipStamp = !!(opts && opts.skipStamp);
+  const syncHash = !!(opts && opts.syncHash);
+  if(!skipStamp) S.updatedAt = Date.now();
+  const raw = JSON.stringify(S);
+  try { localStorage.setItem(STORAGE_KEY, raw); } catch(e){}
+  writeWindowName(S);
+  if(syncHash){
+    try {
+      const full = buildHashUrl(S);
+      if(full.length < URL_HASH_LIMIT && full.includes('#pos=')){
+        history.replaceState(null, '', '#pos=' + full.split('#pos=')[1]);
+      }
+    } catch(e){}
+  }
+  const pill = $('#save-pill');
+  if(pill) pill.textContent = saveBadgeText();
+  return true;
+}
+
+function copyFallback(text){
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.setAttribute('readonly', '');
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    const ok = document.execCommand('copy');
+    document.body.removeChild(ta);
+    return ok;
+  } catch(e){
+    return false;
+  }
+}
+
+const ICONS = {
+  pin: '<path d="M12 21s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="9" r="2.5"/>',
+  chev: '<path d="M6 9l6 6 6-6"/>',
+  bell: '<path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 21h4"/>',
+  search: '<circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/>',
+  sliders: '<path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/>',
+  plus: '<path d="M12 5v14M5 12h14"/>',
+  cart: '<circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M2 3h3l2.5 12h11L21 7H6"/>',
+  home: '<path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/>',
+  grid: '<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M4 10h16M10 10v10"/>',
+  box: '<path d="M3 7l9-4 9 4-9 4-9-4z"/><path d="M3 7v10l9 4 9-4V7"/><path d="M12 11v10"/>',
+  user: '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/>',
+  img: '<rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-8 8"/>'
+};
+const ic = name => `<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">${ICONS[name] || ''}</svg>`;
+
+const V = {
+  tab: 'home',
+  q: '',
+  pq: '',
+  catFilter: '',
+  lowOnly: false,
+  cart: {},
+  sheet: null,
+  payMethod: 'cash',
+  paid: '',
+  gcashRef: '',
+  utangName: '',
+  last: null,
+  draft: {},
+  formId: null,
+  del: false,
+  wipe: false,
+  photoCatId: ''
+};
+
+const catName = id => {
+  const c = (S.cats || []).find(x => x.id === id);
+  return c ? c.name : '';
+};
+const isLowStock = p => p.stock != null && Number(p.stock) <= LOW_STOCK_MAX;
+const stockLabel = p => p.stock == null ? 'Unlimited' : (Number(p.stock) > 0 ? `${Number(p.stock)} pcs` : 'Out of stock');
+const openDebts = () => (S.debts || []).filter(d => !d.paid);
+const sortAlpha = list => list.slice().sort((a, b) => String(a.name).localeCompare(String(b.name), undefined, { sensitivity: 'base', numeric: true }));
+
+const cartLines = () => {
+  const list = [];
+  (S.products || []).forEach(p => {
+    const qty = Number(V.cart[p.id]) || 0;
+    if(qty > 0){
+      list.push({
+        id: p.id,
+        name: p.name,
+        price: Number(p.price) || 0,
+        qty,
+        cat: p.cat || '',
+        cost: p.cost == null ? null : Number(p.cost)
+      });
+    }
+  });
+  return list;
+};
+const cartTotal = () => cartLines().reduce((sum, l) => sum + l.price * l.qty, 0);
+const cartCount = () => cartLines().reduce((sum, l) => sum + l.qty, 0);
+
+function filteredStoreProducts(){
+  const q = String(V.q || '').trim().toLowerCase();
+  return sortAlpha(S.products || []).filter(p => {
+    if(V.catFilter && p.cat !== V.catFilter) return false;
+    if(V.lowOnly && !isLowStock(p)) return false;
+    if(q && !String(p.name || '').toLowerCase().includes(q)) return false;
+    return true;
+  });
+}
+
+function topHeaderHTML(){
+  const debts = openDebts();
+  return `<div class="top">
+    <button class="loc" data-act="tab" data-id="store">
+      ${ic('pin')}
+      <span>
+        <small>${esc(S.store || 'Buddy Store')} · Storefront</small>
+        <b><span>${esc(S.location || 'Naic, Cavite')}</span>${ic('chev')}</b>
+      </span>
+    </button>
+    <button class="circ" data-act="tab" data-id="orders" aria-label="Orders and Utang">
+      ${ic('bell')}
+      ${debts.length ? `<span class="fb num">${debts.length}</span>` : ''}
+    </button>
+  </div>`;
+}
+
+function homeHTML(){
+  const items = filteredStoreProducts();
+  const featured = items[0] || (S.products && S.products[0]) || null;
+  const fCart = featured ? (V.cart[featured.id] || 0) : 0;
+
+  let html = topHeaderHTML();
+  html += `<div class="srow">
+    <label class="search">${ic('search')}<input id="q" type="search" placeholder="Search ${esc(S.store || 'Buddy Store')} items..." value="${esc(V.q)}" autocomplete="off"></label>
+    <button class="fbtn" data-act="togglelow" aria-label="Toggle low stock filter" title="Low stock filter">${ic('sliders')}</button>
+  </div>`;
+
+  html += `<div class="sbar">
+    <span><b>${esc(S.store || 'Buddy Store')}</b> · <span class="num" id="save-pill">${esc(saveBadgeText())}</span></span>
+    <button class="btn sm" data-act="newprod">+ Item</button>
+  </div>`;
+
+  html += `<div class="chips">
+    <button class="chip${!V.catFilter && !V.lowOnly ? ' on' : ''}" data-act="resetfilters">All</button>
+    <button class="chip${V.lowOnly ? ' on' : ''}" data-act="togglelow">Low Stock (&le;${LOW_STOCK_MAX})</button>
+    ${(S.cats || []).map(c => `<button class="chip${V.catFilter === c.id ? ' on' : ''}" data-act="pickcatfilter" data-id="${c.id}">${esc(c.name)}</button>`).join('')}
+  </div>`;
+
+  if(featured){
+    html += `<div class="featured">
+      <div class="featured-img">${featured.img ? `<img src="${esc(featured.img)}" alt="${esc(featured.name)}">` : ic('img')}</div>
+      <div class="featured-info">
+        <div class="sub">Featured · ${esc(catName(featured.cat) || 'Buddy Store')}</div>
+        <div class="featured-title">${esc(featured.name)}</div>
+        <div class="featured-price num">${money(featured.price)} <span class="sub">· ${esc(stockLabel(featured))}</span></div>
+      </div>
+      <button class="btn solid" data-act="add" data-id="${featured.id}">${fCart ? 'Cart (' + fCart + ')' : '+ Add'}</button>
+    </div>`;
+  }
+
+  html += `<div class="sh"><h2 class="stitle">Products (${items.length})</h2><button class="btn sm" data-act="tab" data-id="inventory">Inventory</button></div>`;
+
+  if(!items.length){
+    html += `<div class="empty">No matching products found. <div class="btns" style="justify-content:center;margin-top:10px"><button class="btn" data-act="resetfilters">Reset Filters</button><button class="btn solid" data-act="newprod">Add Product</button></div></div>`;
+  } else {
+    html += `<div class="pgrid">${items.map(p => {
+      const cQty = V.cart[p.id] || 0;
+      const low = isLowStock(p);
+      return `<div class="pc">
+        <div class="pi">${p.img ? `<img src="${esc(p.img)}" alt="${esc(p.name)}">` : ic('img')}</div>
+        <div class="pn">${esc(p.name)}</div>
+        <div class="pu">
+          <span>${esc(stockLabel(p))}</span>
+          ${low ? `<span class="badge warn">${Number(p.stock) === 0 ? 'Out' : 'Low'}</span>` : (catName(p.cat) ? `<span class="badge">${esc(catName(p.cat))}</span>` : '')}
+        </div>
+        <div class="pf">
+          <b class="num">${money(p.price)}</b>
+          <button class="plus" data-act="add" data-id="${p.id}" aria-label="Add ${esc(p.name)} to cart">${cQty ? `<span class="num">${cQty}</span>` : ic('plus')}</button>
+        </div>
+      </div>`;
+    }).join('')}</div>`;
+  }
+
+  return html;
+}
+
+function catsHTML(){
+  const cats = S.cats || [];
+  let html = `<div class="ph"><h1>Categories</h1><div class="sub">Upload photos directly or use the Biscuits helper</div></div>`;
+  html += `<div class="btns" style="margin-bottom:12px">
+    <button class="btn solid" data-act="newcat">${ic('plus')} New Category</button>
+    <button class="btn" data-act="biscuitshelper">Biscuits + Photo Helper</button>
+  </div>`;
+
+  if(!cats.length){
+    html += `<div class="empty">No categories yet. Add one or tap Biscuits + Photo Helper.</div>`;
+    return html;
+  }
+
+  html += `<div class="list">${cats.map(c => {
+    const count = (S.products || []).filter(p => p.cat === c.id).length;
+    return `<div class="ccard">
+      <div class="ci">${c.img ? `<img src="${esc(c.img)}" alt="${esc(c.name)}">` : ic('img')}</div>
+      <div class="cb">
+        <div class="cn">${esc(c.name)}</div>
+        <div class="sub num">${count} ${count === 1 ? 'product' : 'products'}</div>
+        <div class="btns" style="margin-top:8px">
+          <button class="btn sm solid" data-act="catphoto" data-id="${c.id}">Import Photo</button>
+          <button class="btn sm" data-act="editcat" data-id="${c.id}">Edit</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('')}</div>`;
+  return html;
+}
+
+function inventoryRowsHTML(){
+  const q = String(V.pq || '').trim().toLowerCase();
+  const list = sortAlpha(S.products || []).filter(p => {
+    if(V.lowOnly && !isLowStock(p)) return false;
+    if(q && !String(p.name || '').toLowerCase().includes(q)) return false;
+    return true;
+  });
+  if(!list.length){
+    return `<div class="empty">${(S.products || []).length ? 'No products match filter.' : 'No inventory items yet.'}</div>`;
+  }
+  return list.map(p => {
+    const low = isLowStock(p);
+    const profit = p.cost == null ? '' : `Profit ${money((Number(p.price) || 0) - (Number(p.cost) || 0))}`;
+    const meta = [stockLabel(p), catName(p.cat), profit].filter(Boolean).join(' · ');
+    return `<div class="prow">
+      <button class="row" style="flex:1;text-align:left" data-act="editprod" data-id="${p.id}">
+        <span class="pt">${p.img ? `<img src="${esc(p.img)}" alt="${esc(p.name)}">` : ic('img')}</span>
+        <span class="pm">
+          <b>${esc(p.name)} ${low ? `<span class="badge warn">${Number(p.stock) === 0 ? 'Out' : 'Low'}</span>` : ''}</b>
+          <span class="sub num">${esc(meta)}</span>
+        </span>
+        <b class="num">${money(p.price)}</b>
+      </button>
+      <div class="qty">
+        <button data-act="stockdec" data-id="${p.id}" aria-label="Decrease stock of ${esc(p.name)}">−</button>
+        <button data-act="stockinc" data-id="${p.id}" aria-label="Increase stock of ${esc(p.name)}">+</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function inventoryHTML(){
+  let retailVal = 0;
+  let capitalVal = 0;
+  let lowCount = 0;
+  (S.products || []).forEach(p => {
+    const qty = p.stock == null ? 0 : Math.max(0, Number(p.stock) || 0);
+    const price = Number(p.price) || 0;
+    const cost = p.cost == null ? price : (Number(p.cost) || 0);
+    retailVal += qty * price;
+    capitalVal += qty * cost;
+    if(isLowStock(p)) lowCount++;
+  });
+
+  return `<div class="ph"><h1>Inventory &amp; Products</h1><div class="sub">Tap any product to edit or delete, or use + / − for quick stock</div></div>` +
+    `<div class="stat">
+      <div class="card2"><div class="sub">Retail Stock Value</div><div class="v num">${money(retailVal)}</div></div>
+      <div class="card2"><div class="sub">Capital Cost Value</div><div class="v num">${money(capitalVal)}</div></div>
+      <div class="card2"><div class="sub">Products</div><div class="v num">${(S.products || []).length}</div></div>
+      <div class="card2"><div class="sub">Low Stock (&le;${LOW_STOCK_MAX})</div><div class="v num" style="${lowCount ? 'color:var(--danger)' : ''}">${lowCount}</div></div>
+    </div>` +
+    `<div class="row" style="margin-bottom:10px">
+      <button class="btn sm ${V.lowOnly ? 'solid' : ''}" data-act="togglelow">Low Stock Filter</button>
+      <button class="btn sm solid" data-act="newprod">${ic('plus')} Add Product</button>
+    </div>` +
+    `<label class="search" style="margin-bottom:12px">${ic('search')}<input id="pq" type="search" placeholder="Search inventory..." value="${esc(V.pq)}" autocomplete="off"></label>` +
+    `<div class="list" id="inv-list">${inventoryRowsHTML()}</div>`;
+}
+
+function ordersHTML(){
+  const todaySales = (S.sales || []).filter(s => sameDay(s.t));
+  const salesSum = todaySales.reduce((a, s) => a + (Number(s.total) || 0), 0);
+  const profitSum = todaySales.reduce((a, s) => a + (s.items || []).reduce((b, it) => {
+    if(it.cost == null || it.cost === '') return b;
+    return b + ((Number(it.price) || 0) - (Number(it.cost) || 0)) * (Number(it.qty) || 0);
+  }, 0), 0);
+  const debts = openDebts();
+  const debtTotal = debts.reduce((a, d) => a + (Number(d.total) || 0), 0);
+
+  let html = `<div class="ph"><h1>Orders &amp; Utang</h1><div class="sub">Daily summary, unpaid utang &amp; printable receipts</div></div>`;
+  html += `<div class="stat">
+    <div class="card2"><div class="sub">Today’s Sales</div><div class="v num">${money(salesSum)}</div></div>
+    <div class="card2"><div class="sub">Est. Profit Today</div><div class="v num">${money(profitSum)}</div></div>
+    <div class="card2"><div class="sub">Orders Today</div><div class="v num">${todaySales.length}</div></div>
+    <div class="card2"><div class="sub">Open Utang</div><div class="v num" style="${debtTotal ? 'color:var(--danger)' : ''}">${money(debtTotal)}</div></div>
+  </div>`;
+
+  html += `<h2 class="sec">Unpaid Utang (${debts.length})</h2>`;
+  if(!debts.length){
+    html += `<div class="empty">No unpaid utang records.</div>`;
+  } else {
+    html += `<div class="list">${debts.slice().reverse().map(d => `<div class="card2 row">
+      <div>
+        <b>${esc(d.customer || 'Customer')}</b>
+        <div class="sub num">${when(d.t)} · ${(d.items || []).reduce((a, i) => a + (Number(i.qty) || 0), 0)} items</div>
+      </div>
+      <div class="btns">
+        <b class="num" style="align-self:center;color:var(--danger)">${money(d.total)}</b>
+        <button class="btn sm solid" data-act="paydebt" data-id="${d.id}">Mark Paid</button>
+      </div>
+    </div>`).join('')}</div>`;
+  }
+
+  html += `<h2 class="sec">Today’s Completed Sales (${todaySales.length})</h2>`;
+  if(!todaySales.length){
+    html += `<div class="empty">No completed sales yet today.</div>`;
+  } else {
+    html += `<div class="list">${todaySales.slice().reverse().map(s => `<button class="card2 row" data-act="viewsale" data-id="${s.id}">
+      <span>
+        <b>${hhmm(s.t)}</b> · <span class="sub">${esc(String(s.method || 'cash').toUpperCase())}</span>
+        <div class="sub num">${(s.items || []).reduce((a, i) => a + (Number(i.qty) || 0), 0)} items · Tap for receipt</div>
+      </span>
+      <b class="num">${money(s.total)}</b>
+    </button>`).join('')}</div>`;
+  }
+
+  return html;
+}
+
+function storeTabHTML(){
+  return `<div class="ph"><h1>Store &amp; Backup</h1><div class="sub">Buddy Store settings, JSON backup &amp; store reset</div></div>` +
+    `<div class="card2"><div class="row">
+      <div><b>Storage Status</b><div class="sub">${esc(when(S.updatedAt || Date.now()))}</div></div>
+      <span class="status-pill num" id="save-pill">${esc(saveBadgeText())}</span>
+    </div></div>` +
+    `<div class="card2"><div class="form" style="margin:0">
+      <div class="field full"><label for="s-name">Store Name</label><input id="s-name" data-s="store" value="${esc(S.store)}" autocomplete="off"></div>
+      <div class="field"><label for="s-cur">Currency</label><input id="s-cur" data-s="cur" maxlength="3" value="${esc(S.cur)}" autocomplete="off"></div>
+      <div class="field"><label for="s-loc">Location</label><input id="s-loc" data-s="location" value="${esc(S.location)}" autocomplete="off"></div>
+    </div></div>` +
+    `<div class="card2">
+      <b>JSON Backup &amp; Restore</b>
+      <div class="sub" style="margin:4px 0 10px">Persists via localStorage (<code>${esc(STORAGE_KEY)}</code>), <code>window.name</code>, and <code>#pos=</code> URL hash.</div>
+      <div class="btns">
+        <button class="btn solid" data-act="exportjson">Export JSON Backup</button>
+        <button class="btn" data-act="importjson">Import JSON Backup</button>
+        <button class="btn" data-act="copylink">Copy State Link</button>
+      </div>
+    </div>` +
+    `<div class="card2">
+      <b>Reset Store Data</b>
+      <div class="sub" style="margin:4px 0 10px">Clear all products, categories, sales, and utang back to starter defaults.</div>
+      <div class="btns">
+        <button class="btn danger" data-act="${V.wipe ? 'resetconfirm' : 'resetask'}">${V.wipe ? 'Confirm Reset All Data' : 'Reset Store Data'}</button>
+        ${V.wipe ? '<button class="btn" data-act="resetcancel">Cancel</button>' : ''}
+      </div>
+    </div>`;
+}
+
+function tabsHTML(){
+  const tabBtn = (id, label, iconName) => `<button class="tab" data-act="tab" data-id="${id}"${V.tab === id ? ' aria-current="page"' : ''}>${ic(iconName)}<span>${label}</span></button>`;
+  const count = cartCount();
+  return `<nav class="tabs" aria-label="Primary navigation"><div class="tabin">
+    ${tabBtn('home', 'Home', 'home')}
+    ${tabBtn('cats', 'Categories', 'grid')}
+    <button class="fab" data-act="cart" aria-label="Open checkout cart">${ic('cart')}<span class="fb num" id="fb"${count ? '' : ' hidden'}>${count}</span></button>
+    ${tabBtn('inventory', 'Inventory', 'box')}
+    ${tabBtn('store', 'Store', 'user')}
+  </div></nav>`;
+}
+
+const fieldHTML = (id, label, key, val, attrs = '', cls = '') => `<div class="field ${cls}"><label for="${id}">${label}</label><input id="${id}" data-d="${key}" value="${esc(val)}" ${attrs} autocomplete="off"></div>`;
+
+function draftPhotoHTML(){
+  const img = V.draft.img || '';
+  return `<div class="photo full">
+    <div class="pthumb">${img ? `<img src="${esc(img)}" alt="">` : ic('img')}</div>
+    <div class="btns">
+      <label class="btn sm solid" for="dimg">${img ? 'Change Photo' : 'Upload Photo'}</label>
+      ${img ? '<button class="btn sm danger" data-act="rmimg">Remove</button>' : ''}
+      ${V.sheet === 'cat' ? '<button class="btn sm" data-act="biscuitspreset">Biscuits Photo</button>' : ''}
+    </div>
+    <input id="dimg" type="file" accept="image/*" hidden>
+  </div>`;
+}
+
+function sheetHTML(){
+  if(!V.sheet) return '';
+  let body = '';
+  if(V.sheet === 'cat'){
+    const d = V.draft;
+    body = `<h3>${V.formId ? 'Edit Category' : 'New Category'}</h3>
+      <div class="form">
+        ${fieldHTML('cf-name', 'Category Name', 'name', d.name || '', 'placeholder="e.g. Biscuits"', 'full')}
+        ${draftPhotoHTML()}
+      </div>
+      <div class="err" id="err"></div>
+      <div class="btns">
+        <button class="btn solid" data-act="savecat">Save Category</button>
+        ${V.formId ? `<button class="btn danger" data-act="${V.del ? 'delcatyes' : 'delcat'}">${V.del ? 'Confirm Delete' : 'Delete'}</button>` : ''}
+        <button class="btn" data-act="close">Cancel</button>
+      </div>`;
+  } else if(V.sheet === 'prod'){
+    const d = V.draft;
+    const catOpts = `<option value="">Uncategorized</option>` + (S.cats || []).map(c => `<option value="${esc(c.id)}"${d.cat === c.id ? ' selected' : ''}>${esc(c.name)}</option>`).join('');
+    body = `<h3>${V.formId ? 'Edit Product' : 'Add Product'}</h3>
+      <div class="form">
+        ${fieldHTML('pf-name', 'Product Name', 'name', d.name || '', 'placeholder="e.g. Skyflakes"', 'full')}
+        ${fieldHTML('pf-price', 'Selling Price (' + esc(S.cur || '₱') + ')', 'price', d.price ?? '', 'inputmode="decimal" placeholder="0"')}
+        ${fieldHTML('pf-cost', 'Capital Cost (' + esc(S.cur || '₱') + ')', 'cost', d.cost ?? '', 'inputmode="decimal" placeholder="Optional"')}
+        ${fieldHTML('pf-stock', 'Stock (pcs)', 'stock', d.stock ?? '', 'inputmode="numeric" placeholder="Optional"')}
+        <div class="field"><label>Profit / Piece</label><div class="pbox" id="profit">—</div></div>
+        <div class="field full"><label for="pf-cat">Category</label><select id="pf-cat" data-d="cat">${catOpts}</select></div>
+        ${draftPhotoHTML()}
+      </div>
+      <div class="err" id="err"></div>
+      <div class="btns">
+        <button class="btn solid" data-act="saveprod">Save Product</button>
+        ${V.formId ? `<button class="btn danger" data-act="${V.del ? 'delprodyes' : 'delprod'}">${V.del ? 'Confirm Delete' : 'Delete'}</button>` : ''}
+        <button class="btn" data-act="close">Cancel</button>
+      </div>`;
+  } else if(V.sheet === 'cart'){
+    const lines = cartLines();
+    const total = cartTotal();
+    if(!lines.length){
+      body = `<h3>Cart</h3><div class="empty">Your cart is empty. Tap + on any product to add items.</div><div class="btns"><button class="btn" data-act="close">Close</button></div>`;
+    } else {
+      const pm = V.payMethod || 'cash';
+      body = `<h3>Checkout · ${esc(S.store || 'Buddy Store')}</h3>` +
+        lines.map(l => `<div class="line">
+          <div class="ln"><b>${esc(l.name)}</b><div class="sub num">${money(l.price)} each</div></div>
+          <div class="qty">
+            <button data-act="dec" data-id="${l.id}" aria-label="Decrease quantity">−</button>
+            <span class="num">${l.qty}</span>
+            <button data-act="inc" data-id="${l.id}" aria-label="Increase quantity">+</button>
+          </div>
+          <b class="num" style="min-width:68px;text-align:right">${money(l.price * l.qty)}</b>
+        </div>`).join('') +
+        `<div class="total"><span>Total</span><b class="num">${money(total)}</b></div>` +
+        `<div class="pay-tabs" role="tablist">
+          <button class="pay-tab${pm === 'cash' ? ' on' : ''}" data-act="paytab" data-v="cash">Cash</button>
+          <button class="pay-tab${pm === 'gcash' ? ' on' : ''}" data-act="paytab" data-v="gcash">GCash</button>
+          <button class="pay-tab${pm === 'utang' ? ' on' : ''}" data-act="paytab" data-v="utang">Utang</button>
+        </div>` +
+        (pm === 'cash'
+          ? `<div class="field"><label for="paid-inp">Cash Received (${esc(S.cur || '₱')})</label><input id="paid-inp" inputmode="decimal" value="${esc(V.paid)}" placeholder="0" autocomplete="off"></div>
+             <div class="quick"><button data-act="exact">Exact</button>${QUICK_CASH.map(n => `<button data-act="quick" data-n="${n}">${n}</button>`).join('')}</div>`
+          : pm === 'gcash'
+            ? `<div class="field"><label for="gcash-inp">GCash Reference # (Optional)</label><input id="gcash-inp" value="${esc(V.gcashRef)}" placeholder="e.g. 9012 345678" autocomplete="off"></div>`
+            : `<div class="field"><label for="utang-inp">Customer Name (Required for Utang)</label><input id="utang-inp" value="${esc(V.utangName)}" placeholder="Enter customer name" autocomplete="off"></div>`) +
+        `<div class="change" id="chg"></div><div class="err" id="err"></div>` +
+        `<div class="btns">
+          <button class="btn solid" id="finish-btn" data-act="finish" style="flex:1">${pm === 'utang' ? 'Record Utang' : 'Complete Sale'}</button>
+          <button class="btn" data-act="close">Back</button>
+        </div>
+        <div class="btns" style="margin-top:10px"><button class="btn sm danger" data-act="clearcart">Clear Cart</button></div>`;
+    }
+  } else if(V.sheet === 'receipt'){
+    const r = V.last || {};
+    const isUtang = r.method === 'utang';
+    body = `<h3>${isUtang ? 'Utang Slip' : 'Official Receipt'}</h3>
+      <div class="receipt">
+        <div class="c"><b>${esc(S.store || 'Buddy Store')}</b><br>${esc(S.location || '')}<br>${esc(when(r.t || Date.now()))}${r.customer ? `<br>Customer: <b>${esc(r.customer)}</b>` : ''}</div>
+        <hr>
+        ${(r.items || []).map(i => `<div class="r"><span>${i.qty} x ${esc(i.name)}</span><span class="num">${money(i.price * i.qty)}</span></div>`).join('')}
+        <hr>
+        <div class="r"><b>TOTAL</b><b class="num">${money(r.total)}</b></div>
+        <div class="r"><span>Payment</span><span>${esc(String(r.method || 'cash').toUpperCase())}</span></div>
+        ${r.ref ? `<div class="r"><span>Ref #</span><span>${esc(r.ref)}</span></div>` : ''}
+        ${!isUtang ? `<div class="r"><span>Paid</span><span class="num">${money(r.paid)}</span></div><div class="r"><span>Change</span><span class="num">${money(Math.max(0, (Number(r.paid) || 0) - (Number(r.total) || 0)))}</span></div>` : ''}
+        <hr><div class="c">Salamat sa pamimili sa ${esc(S.store || 'Buddy Store')}!</div>
+      </div>
+      <div class="btns" style="margin-top:14px">
+        <button class="btn" data-act="printrec">Print Receipt</button>
+        <button class="btn solid" data-act="close" style="flex:1">Done</button>
+      </div>`;
+  }
+  return `<div class="scrim" data-act="scrim"><div class="sheet" role="dialog" aria-modal="true">${body}</div></div>`;
+}
+
+function updateChangeBox(){
+  const el = $('#chg'), btn = $('#finish-btn');
+  if(!el) return;
+  const total = cartTotal();
+  const pm = V.payMethod || 'cash';
+  if(pm === 'utang'){
+    const ok = String(V.utangName || '').trim().length > 0;
+    el.className = 'change';
+    el.innerHTML = `<span>Utang Amount</span><span class="num">${money(total)}</span>`;
+    if(btn) btn.disabled = !ok || total <= 0;
+    return;
+  }
+  if(pm === 'gcash'){
+    el.className = 'change';
+    el.innerHTML = `<span>GCash Amount</span><span class="num">${money(total)}</span>`;
+    if(btn) btn.disabled = total <= 0;
+    return;
+  }
+  const paidNum = parseFloat(String(V.paid || '').replace(',', '.'));
+  if(isNaN(paidNum) || String(V.paid).trim() === ''){
+    el.className = 'change';
+    el.innerHTML = '<span>Change</span><span class="num">—</span>';
+    if(btn) btn.disabled = true;
+    return;
+  }
+  const diff = Math.round((paidNum - total) * 100) / 100;
+  if(diff < 0){
+    el.className = 'change bad';
+    el.innerHTML = `<span>Insufficient Cash</span><span class="num">${money(-diff)}</span>`;
+    if(btn) btn.disabled = true;
+  } else {
+    el.className = 'change';
+    el.innerHTML = `<span>Change</span><span class="num">${money(diff)}</span>`;
+    if(btn) btn.disabled = false;
+  }
+}
+
+function updateProfitBox(){
+  const el = $('#profit');
+  if(!el) return;
+  const p = parseFloat(String(V.draft.price ?? '').replace(',', '.'));
+  const c = parseFloat(String(V.draft.cost ?? '').replace(',', '.'));
+  if(isNaN(p) || isNaN(c)){
+    el.textContent = '—';
+    el.className = 'pbox';
+    return;
+  }
+  const g = Math.round((p - c) * 100) / 100;
+  el.textContent = money(g);
+  el.className = 'pbox' + (g < 0 ? ' bad' : ' good');
+}
+
+function syncCartBadges(){
+  document.querySelectorAll('.plus[data-id]').forEach(btn => {
+    const c = Number(V.cart[btn.dataset.id]) || 0;
+    btn.innerHTML = c ? `<span class="num">${c}</span>` : ic('plus');
+  });
+  const fabBadge = $('#fb');
+  if(fabBadge){
+    const n = cartCount();
+    fabBadge.textContent = n;
+    fabBadge.hidden = !n;
+  }
+}
+
+function render(){
+  try {
+    let page = '';
+    if(V.tab === 'home') page = homeHTML();
+    else if(V.tab === 'cats') page = catsHTML();
+    else if(V.tab === 'inventory') page = inventoryHTML();
+    else if(V.tab === 'orders') page = ordersHTML();
+    else page = storeTabHTML();
+
+    $('#app').innerHTML = `<div class="wrap">${page}</div>` + tabsHTML();
+    $('#layer').innerHTML = sheetHTML();
+    if(V.sheet === 'cart') updateChangeBox();
+    if(V.sheet === 'prod') updateProfitBox();
+  } catch(e){
+    $('#app').innerHTML = `<div class="wrap"><div class="card2"><b>Buddy Store POS</b><div class="sub">Recovered view.</div></div></div>` + tabsHTML();
+  }
+}
+
+function openSheet(kind, draft, formId){
+  V.sheet = kind;
+  V.draft = Object.assign({}, draft || {});
+  V.formId = formId == null ? null : formId;
+  V.del = false;
+  render();
+}
+const setErr = msg => { const e = $('#err'); if(e) e.textContent = msg; };
+
+function compressImage(file, maxDim, done){
+  try {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        try {
+          const w = img.width || 1;
+          const h = img.height || 1;
+          const scale = Math.min(1, maxDim / Math.max(w, h));
+          const canvas = document.createElement('canvas');
+          canvas.width = Math.max(1, Math.round(w * scale));
+          canvas.height = Math.max(1, Math.round(h * scale));
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          const out = file.type === 'image/png' ? canvas.toDataURL('image/png') : canvas.toDataURL('image/jpeg', 0.8);
+          done(out);
+        } catch(e){ toast('Could not process photo.'); }
+      };
+      img.onerror = () => toast('Could not load photo.');
+      img.src = reader.result;
+    };
+    reader.onerror = () => toast('Could not read file.');
+    reader.readAsDataURL(file);
+  } catch(e){ toast('Photo upload unavailable.'); }
+}
+
+document.addEventListener('click', ev => {
+  try {
+    const target = ev.target.closest('[data-act]');
+    if(!target) return;
+    let act = target.dataset.act;
+    const id = target.dataset.id;
+    if(act === 'scrim'){ if(ev.target !== target) return; act = 'close'; }
+
+    switch(act){
+      case 'tab':
+        V.tab = id;
+        V.wipe = false;
+        render();
+        window.scrollTo(0, 0);
+        break;
+      case 'resetfilters':
+        V.catFilter = '';
+        V.lowOnly = false;
+        V.q = '';
+        render();
+        break;
+      case 'togglelow':
+        V.lowOnly = !V.lowOnly;
+        render();
+        break;
+      case 'pickcatfilter':
+        V.catFilter = V.catFilter === id ? '' : id;
+        render();
+        break;
+      case 'add': {
+        const p = (S.products || []).find(x => x.id === id);
+        if(!p) break;
+        const curQty = Number(V.cart[id]) || 0;
+        if(p.stock != null && curQty >= Number(p.stock)){
+          toast(Number(p.stock) > 0 ? `Only ${Number(p.stock)} pcs in stock.` : 'Out of stock.');
+          break;
+        }
+        V.cart[id] = curQty + 1;
+        syncCartBadges();
+        break;
+      }
+      case 'newcat':
+        openSheet('cat', { name: '', img: '' });
+        break;
+      case 'biscuitshelper': {
+        let bCat = (S.cats || []).find(c => String(c.name || '').toLowerCase() === 'biscuits');
+        if(!bCat){
+          bCat = { id: 'cat-biscuits', name: 'Biscuits', img: BISCUITS_PHOTO };
+          S.cats.unshift(bCat);
+          toast('Biscuits category created with photo.');
+        } else {
+          bCat.img = BISCUITS_PHOTO;
+          toast('Biscuits category photo updated.');
+        }
+        persist({ syncHash: true });
+        render();
+        break;
+      }
+      case 'biscuitspreset':
+        V.draft.name = String(V.draft.name || '').trim() || 'Biscuits';
+        V.draft.img = BISCUITS_PHOTO;
+        render();
+        break;
+      case 'catphoto':
+        V.photoCatId = id;
+        { const inp = $('#cat-photo-input'); if(inp){ inp.value = ''; inp.click(); } }
+        break;
+      case 'editcat': {
+        const c = (S.cats || []).find(x => x.id === id);
+        if(c) openSheet('cat', { name: c.name, img: c.img || '' }, id);
+        break;
+      }
+      case 'savecat': {
+        const name = String(V.draft.name || '').trim();
+        if(!name){ setErr('Please enter a category name.'); return; }
+        if(V.formId){
+          const c = (S.cats || []).find(x => x.id === V.formId);
+          if(c){ c.name = name; c.img = V.draft.img || ''; }
+        } else {
+          S.cats.push({ id: 'cat-' + uid(), name, img: V.draft.img || '' });
+        }
+        persist({ syncHash: true });
+        V.sheet = null;
+        render();
+        toast('Category saved.');
+        break;
+      }
+      case 'delcat':
+        V.del = true;
+        render();
+        break;
+      case 'delcatyes':
+        S.cats = (S.cats || []).filter(c => c.id !== V.formId);
+        (S.products || []).forEach(p => { if(p.cat === V.formId) p.cat = ''; });
+        if(V.catFilter === V.formId) V.catFilter = '';
+        persist({ syncHash: true });
+        V.sheet = null;
+        render();
+        toast('Category deleted.');
+        break;
+      case 'newprod':
+        openSheet('prod', { name: '', price: '', cost: '', stock: '10', cat: V.catFilter || (S.cats[0] ? S.cats[0].id : ''), img: '' });
+        break;
+      case 'editprod': {
+        const p = (S.products || []).find(x => x.id === id);
+        if(p){
+          openSheet('prod', {
+            name: p.name,
+            price: String(p.price),
+            cost: p.cost == null ? '' : String(p.cost),
+            stock: p.stock == null ? '' : String(p.stock),
+            cat: p.cat || '',
+            img: p.img || ''
+          }, id);
+        }
+        break;
+      }
+      case 'saveprod': {
+        const d = V.draft;
+        const name = String(d.name || '').trim();
+        const price = parseFloat(String(d.price ?? '').replace(',', '.'));
+        if(!name || isNaN(price) || price < 0){
+          setErr('Enter a valid product name and selling price.');
+          return;
+        }
+        const rawCost = String(d.cost ?? '').trim().replace(',', '.');
+        const cost = rawCost === '' ? null : parseFloat(rawCost);
+        const rawStock = String(d.stock ?? '').trim().replace(',', '.');
+        const stock = rawStock === '' ? null : Math.max(0, Math.floor(parseFloat(rawStock)));
+        if((rawCost !== '' && (isNaN(cost) || cost < 0)) || (rawStock !== '' && isNaN(stock))){
+          setErr('Check capital cost or stock numbers.');
+          return;
+        }
+        const rec = {
+          name,
+          price,
+          cost,
+          stock,
+          cat: String(d.cat || ''),
+          img: d.img || ''
+        };
+        if(V.formId){
+          const idx = (S.products || []).findIndex(x => x.id === V.formId);
+          if(idx >= 0) S.products[idx] = Object.assign({}, S.products[idx], rec);
+        } else {
+          S.products.push(Object.assign({ id: 'prod-' + uid() }, rec));
+        }
+        persist({ syncHash: true });
+        V.sheet = null;
+        render();
+        toast('Product saved.');
+        break;
+      }
+      case 'delprod':
+        V.del = true;
+        render();
+        break;
+      case 'delprodyes':
+        S.products = (S.products || []).filter(p => p.id !== V.formId);
+        delete V.cart[V.formId];
+        persist({ syncHash: true });
+        V.sheet = null;
+        render();
+        toast('Product deleted.');
+        break;
+      case 'stockinc': {
+        const p = (S.products || []).find(x => x.id === id);
+        if(p){ p.stock = (p.stock == null ? 0 : Number(p.stock)) + 1; persist(); render(); }
+        break;
+      }
+      case 'stockdec': {
+        const p = (S.products || []).find(x => x.id === id);
+        if(p){ p.stock = Math.max(0, (p.stock == null ? 0 : Number(p.stock)) - 1); persist(); render(); }
+        break;
+      }
+      case 'rmimg':
+        V.draft.img = '';
+        render();
+        break;
+      case 'cart':
+        V.sheet = 'cart';
+        V.payMethod = 'cash';
+        V.paid = '';
+        V.gcashRef = '';
+        V.utangName = '';
+        render();
+        break;
+      case 'paytab':
+        V.payMethod = target.dataset.v || 'cash';
+        setErr('');
+        render();
+        break;
+      case 'inc': {
+        const p = (S.products || []).find(x => x.id === id);
+        const curQty = Number(V.cart[id]) || 0;
+        if(p && p.stock != null && curQty >= Number(p.stock)){
+          toast(`Only ${Number(p.stock)} pcs available.`);
+          break;
+        }
+        V.cart[id] = curQty + 1;
+        render();
+        break;
+      }
+      case 'dec':
+        V.cart[id] = Math.max(0, (Number(V.cart[id]) || 0) - 1);
+        if(!cartCount()) V.sheet = null;
+        render();
+        break;
+      case 'clearcart':
+        V.cart = {};
+        V.sheet = null;
+        render();
+        break;
+      case 'exact':
+        V.paid = String(cartTotal());
+        { const inp = $('#paid-inp'); if(inp) inp.value = V.paid; }
+        updateChangeBox();
+        break;
+      case 'quick':
+        V.paid = String(target.dataset.n || '');
+        { const inp = $('#paid-inp'); if(inp) inp.value = V.paid; }
+        updateChangeBox();
+        break;
+      case 'finish': {
+        const lines = cartLines();
+        const total = cartTotal();
+        if(!lines.length || total <= 0) return;
+        const pm = V.payMethod || 'cash';
+        if(pm === 'utang'){
+          const cust = String(V.utangName || '').trim();
+          if(!cust){ setErr('Please enter customer name for Utang.'); return; }
+          const debt = { id: 'debt-' + uid(), t: Date.now(), customer: cust, items: lines, total, paid: false };
+          S.debts.push(debt);
+          lines.forEach(l => {
+            const p = (S.products || []).find(x => x.id === l.id);
+            if(p && p.stock != null) p.stock = Math.max(0, Number(p.stock) - l.qty);
+          });
+          persist();
+          V.last = { id: debt.id, t: debt.t, items: lines, total, method: 'utang', customer: cust };
+          V.cart = {};
+          V.utangName = '';
+          V.sheet = 'receipt';
+          render();
+          toast('Utang recorded.');
+          break;
+        }
+        const paidVal = pm === 'gcash' ? total : parseFloat(String(V.paid || '').replace(',', '.'));
+        if(pm === 'cash' && (isNaN(paidVal) || paidVal < total)){
+          setErr('Cash received must be at least the total amount.');
+          return;
+        }
+        const sale = {
+          id: 'sale-' + uid(),
+          t: Date.now(),
+          items: lines,
+          total,
+          paid: paidVal,
+          method: pm,
+          ref: pm === 'gcash' ? String(V.gcashRef || '').trim() : ''
+        };
+        S.sales.push(sale);
+        lines.forEach(l => {
+          const p = (S.products || []).find(x => x.id === l.id);
+          if(p && p.stock != null) p.stock = Math.max(0, Number(p.stock) - l.qty);
+        });
+        persist();
+        V.last = sale;
+        V.cart = {};
+        V.paid = '';
+        V.gcashRef = '';
+        V.sheet = 'receipt';
+        render();
+        toast('Sale completed.');
+        break;
+      }
+      case 'paydebt': {
+        const d = (S.debts || []).find(x => x.id === id);
+        if(d && !d.paid){
+          d.paid = true;
+          d.paidAt = Date.now();
+          S.sales.push({
+            id: 'sale-' + uid(),
+            t: Date.now(),
+            items: d.items || [],
+            total: Number(d.total) || 0,
+            paid: Number(d.total) || 0,
+            method: 'utang-paid',
+            customer: d.customer || ''
+          });
+          persist();
+          render();
+          toast('Utang marked paid & recorded in sales.');
+        }
+        break;
+      }
+      case 'viewsale':
+        V.last = (S.sales || []).find(x => x.id === id) || null;
+        if(V.last){ V.sheet = 'receipt'; render(); }
+        break;
+      case 'printrec':
+        try { window.print(); } catch(e){}
+        break;
+      case 'close':
+        V.sheet = null;
+        V.del = false;
+        render();
+        break;
+      case 'exportjson': {
+        try {
+          const blob = new Blob([JSON.stringify(S, null, 2)], { type: 'application/json' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'buddy-store-pos-backup.json';
+          a.click();
+          setTimeout(() => { try { URL.revokeObjectURL(url); } catch(e){} }, 500);
+          toast('JSON backup exported.');
+        } catch(e){ toast('Could not export JSON.'); }
+        break;
+      }
+      case 'importjson': {
+        const inp = $('#json-import-input');
+        if(inp){ inp.value = ''; inp.click(); }
+        break;
+      }
+      case 'copylink': {
+        try {
+          persist({ syncHash: true });
+          const url = buildHashUrl(S);
+          const ok = copyFallback(url);
+          toast(ok ? 'State link copied to clipboard.' : 'State updated in URL hash.');
+        } catch(e){ toast('Could not copy link.'); }
+        break;
+      }
+      case 'resetask':
+        V.wipe = true;
+        render();
+        break;
+      case 'resetcancel':
+        V.wipe = false;
+        render();
+        break;
+      case 'resetconfirm':
+        S = defaultStarterState();
+        V.cart = {};
+        V.wipe = false;
+        V.catFilter = '';
+        V.lowOnly = false;
+        try { localStorage.removeItem(STORAGE_KEY); } catch(e){}
+        try { window.name = ''; } catch(e){}
+        try { if(window.location.hash) history.replaceState(null, '', window.location.href.split('#')[0]); } catch(e){}
+        persist({ syncHash: true });
+        render();
+        toast('Store reset to default starter items.');
+        break;
+    }
+  } catch(e){
+    render();
+  }
+});
+
+document.addEventListener('input', ev => {
+  try {
+    const t = ev.target;
+    if(t.dataset.s){
+      S[t.dataset.s] = t.value;
+      persist({ skipStamp: true });
+    } else if(t.dataset.d){
+      V.draft[t.dataset.d] = t.value;
+      if(t.dataset.d === 'price' || t.dataset.d === 'cost') updateProfitBox();
+    } else if(t.id === 'q'){
+      V.q = t.value;
+      render();
+      const inp = $('#q');
+      if(inp){ inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length); }
+    } else if(t.id === 'pq'){
+      V.pq = t.value;
+      const listEl = $('#inv-list');
+      if(listEl) listEl.innerHTML = inventoryRowsHTML();
+    } else if(t.id === 'paid-inp'){
+      V.paid = t.value.replace(',', '.');
+      updateChangeBox();
+    } else if(t.id === 'gcash-inp'){
+      V.gcashRef = t.value;
+    } else if(t.id === 'utang-inp'){
+      V.utangName = t.value;
+      updateChangeBox();
+    }
+  } catch(e){}
+});
+
+document.addEventListener('change', ev => {
+  try {
+    const t = ev.target;
+    if(t.dataset.d && t.tagName === 'SELECT'){
+      V.draft[t.dataset.d] = t.value;
+    } else if(t.id === 'dimg' && t.files && t.files[0]){
+      const maxDim = V.sheet === 'cat' ? 240 : 360;
+      compressImage(t.files[0], maxDim, dataUrl => {
+        V.draft.img = dataUrl;
+        render();
+      });
+    } else if(t.id === 'cat-photo-input' && t.files && t.files[0]){
+      const cid = V.photoCatId;
+      compressImage(t.files[0], 240, dataUrl => {
+        const c = (S.cats || []).find(x => x.id === cid);
+        if(c){
+          c.img = dataUrl;
+          persist({ syncHash: true });
+          render();
+          toast('Category photo uploaded.');
+        }
+      });
+    } else if(t.id === 'json-import-input' && t.files && t.files[0]){
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const parsed = JSON.parse(String(reader.result || '{}'));
+          const payload = parsed && parsed.data && typeof parsed.data === 'object' ? parsed.data : parsed;
+          S = mergeStore(S, payload);
+          persist({ syncHash: true });
+          render();
+          toast('JSON backup imported.');
+        } catch(e){
+          toast('Invalid JSON backup file.');
+        }
+      };
+      reader.readAsText(t.files[0]);
+    }
+  } catch(e){}
+});
+
+// Immediate synchronous render and initial persistence write on load
+render();
+persist({ skipStamp: true });
+})();
+</script>
+</body>
+</html>
